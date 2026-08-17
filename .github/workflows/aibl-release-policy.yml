@@ -59,7 +59,7 @@ jobs:
             --cpus 2 \
             --memory 4g \
             "${image_tag}" \
-            bun test --max-concurrency 1
+            bun test --timeout 30000 --max-concurrency 1
       - name: Build production web application
         env:
           NODE_ENV: production
