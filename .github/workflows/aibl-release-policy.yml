@@ -53,15 +53,21 @@ jobs:
               --file apps/media-server/Dockerfile.standalone \
               --tag "${image_tag}" \
               apps/media-server &&
-            docker run --rm \
-              --read-only \
-              --tmpfs /tmp:rw,nosuid,nodev,size=1g \
-              --cap-drop ALL \
-              --security-opt no-new-privileges:true \
-              --cpus 2 \
-              --memory 4g \
-              "${image_tag}" \
-              bun test --timeout 30000 --max-concurrency 1
+            while IFS= read -r test_file; do
+              relative_test="${test_file#apps/media-server/}"
+              docker run --rm \
+                --read-only \
+                --tmpfs /tmp:rw,nosuid,nodev,size=1g \
+                --cap-drop ALL \
+                --security-opt no-new-privileges:true \
+                --cpus 2 \
+                --memory 4g \
+                "${image_tag}" \
+                bun test --timeout 30000 "${relative_test}" || exit 1
+            done < <(
+              find apps/media-server/src/__tests__ \
+                -type f -name '*.test.ts' -print | sort
+            )
           } 2>&1 | tee /tmp/aibl-media-gate.log
           status=${PIPESTATUS[0]}
           set -e
