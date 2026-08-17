@@ -16,6 +16,7 @@ jobs:
   release-policy:
     name: Release policy
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     steps:
       - name: Check out exact revision
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -31,6 +32,12 @@ jobs:
           corepack install --global pnpm@10.5.2
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
+      - name: Install and verify media tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ffmpeg
+          ffmpeg -version
+          ffprobe -version
       - name: Verify release policy
         run: |
           python3 scripts/verify-aibl-release-policy.py
