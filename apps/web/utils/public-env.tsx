@@ -4,6 +4,8 @@ import { createContext, type PropsWithChildren, useContext } from "react";
 
 type PublicEnvContext = {
 	webUrl: string;
+	brandName: string;
+	sourceUrl: string | null;
 	googleAuthAvailable: boolean;
 	workosAuthAvailable: boolean;
 };

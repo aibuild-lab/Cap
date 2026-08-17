@@ -1,4 +1,9 @@
-import { buildEnv, serverEnv } from "@cap/env";
+import {
+	buildEnv,
+	getSelfHostBrandName,
+	getSelfHostSourceUrl,
+	serverEnv,
+} from "@cap/env";
 import { STRIPE_PLAN_IDS } from "@cap/utils";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import { type PropsWithChildren, Suspense } from "react";
@@ -26,6 +31,8 @@ export async function AppProviders({ children }: PropsWithChildren) {
 						<PublicEnvContext
 							value={{
 								webUrl: buildEnv.NEXT_PUBLIC_WEB_URL,
+								brandName: getSelfHostBrandName(),
+								sourceUrl: getSelfHostSourceUrl(),
 								workosAuthAvailable: !!serverEnv().WORKOS_CLIENT_ID,
 								googleAuthAvailable: !!serverEnv().GOOGLE_CLIENT_ID,
 							}}

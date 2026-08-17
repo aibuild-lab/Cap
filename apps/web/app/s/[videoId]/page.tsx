@@ -14,7 +14,7 @@ import {
 	videoUploads,
 } from "@cap/database/schema";
 import type { VideoMetadata } from "@cap/database/types";
-import { buildEnv, serverEnv } from "@cap/env";
+import { buildEnv, getSelfHostBrandName, serverEnv } from "@cap/env";
 import { Logo } from "@cap/ui";
 import { userIsPro } from "@cap/utils";
 import {
@@ -79,6 +79,7 @@ import { Share } from "./Share";
 
 const VIEW_NOTIFICATION_DELAY_MS = 2 * 60 * 1000;
 const VIDEO_ID_PATTERN = /^[0-9abcdefghjkmnpqrstvwxyz]+$/;
+const shareBrandName = getSelfHostBrandName();
 
 type ShareVideoSearchParams = {
 	[key: string]: string | string[] | undefined;
@@ -241,7 +242,7 @@ export async function generateMetadata(
 				onNone: () =>
 					awaitRecording
 						? {
-								title: "Cap: Preparing Video",
+								title: `${shareBrandName}: Preparing Video`,
 								description: "This recording is being made available.",
 								robots: "noindex, nofollow",
 							}
@@ -253,6 +254,7 @@ export async function generateMetadata(
 							name: video.name,
 							sourceType: video.source.type,
 							webUrl: buildEnv.NEXT_PUBLIC_WEB_URL,
+							brandName: shareBrandName,
 							advertiseIframelyPlayer: shouldAdvertiseIframelyPlayer,
 						}),
 						robots: canRenderSocialPreview
@@ -265,7 +267,7 @@ export async function generateMetadata(
 		Effect.catchTags({
 			PolicyDenied: () =>
 				Effect.succeed({
-					title: "Cap: This video is restricted",
+					title: `${shareBrandName}: This video is restricted`,
 					description: "This video has restricted access.",
 					openGraph: {
 						images: [
@@ -283,7 +285,7 @@ export async function generateMetadata(
 				}),
 			VerifyVideoPasswordError: () =>
 				Effect.succeed({
-					title: "Cap: Password Protected Video",
+					title: `${shareBrandName}: Password Protected Video`,
 					description: "This video is password protected.",
 					openGraph: {
 						images: [
@@ -299,7 +301,7 @@ export async function generateMetadata(
 					},
 					twitter: {
 						card: "summary_large_image",
-						title: "Cap: Password Protected Video",
+						title: `${shareBrandName}: Password Protected Video`,
 						description: "This video is password protected.",
 						images: [
 							new URL(

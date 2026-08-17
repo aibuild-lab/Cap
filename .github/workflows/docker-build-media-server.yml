@@ -1,110 +1,50 @@
-name: "Docker Build Media Server"
+name: Build AIBL Cap media image
 
 on:
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Tag for the Docker image"
-        required: false
-        default: "latest"
-        type: string
-  push:
-    branches:
-      - main
-    paths:
-      - "apps/media-server/**"
 
 jobs:
   build:
-    name: Build Docker Image (${{ matrix.platform }})
-    runs-on: ${{ matrix.runner }}
-    strategy:
-      matrix:
-        include:
-          - platform: amd64
-            runner: ubuntu-24.04
-          - platform: arm64
-            runner: ubuntu-24.04-arm
-      fail-fast: false
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
-
+      id-token: write
+      attestations: write
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+      - name: Check out exact revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - name: Log in to GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Downcase GITHUB_REPOSITORY_OWNER
-        run: |
-          echo "REPOSITORY_OWNER=${GITHUB_REPOSITORY_OWNER@L}" >>${GITHUB_ENV}
-
-      - name: Build and Push Platform Image
-        id: build
-        uses: docker/build-push-action@v5
+      - name: Normalize owner
+        run: echo "IMAGE_OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
+      - name: Build and publish amd64 image
+        id: image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
-          context: ./apps/media-server
-          file: ./apps/media-server/Dockerfile.standalone
-          platforms: linux/${{ matrix.platform }}
+          context: apps/media-server
+          file: apps/media-server/Dockerfile.standalone
+          platforms: linux/amd64
           push: true
-          outputs: type=image,name=ghcr.io/${{ env.REPOSITORY_OWNER }}/cap-media-server,push-by-digest=true
-          cache-from: type=gha,scope=media-server-${{ matrix.platform }}
-          cache-to: type=gha,mode=max,scope=media-server-${{ matrix.platform }}
-
-      - name: Export Digest
+          tags: ghcr.io/${{ env.IMAGE_OWNER }}/cap-media:sha-${{ github.sha }}
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha,scope=aibl-cap-media-amd64
+          cache-to: type=gha,mode=max,scope=aibl-cap-media-amd64
+      - name: Record immutable digest
         run: |
-          mkdir -p /tmp/digests
-          digest="${{ steps.build.outputs.digest }}"
-          touch "/tmp/digests/${digest#sha256:}"
-
-      - name: Upload Digest
-        uses: actions/upload-artifact@v4
+          mkdir -p image-receipt
+          printf '%s\n' 'ghcr.io/${{ env.IMAGE_OWNER }}/cap-media@${{ steps.image.outputs.digest }}' > image-receipt/cap-media.txt
+      - name: Upload digest receipt
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: digests-media-server-${{ matrix.platform }}
-          path: /tmp/digests/*
+          name: cap-media-${{ github.sha }}
+          path: image-receipt/cap-media.txt
           if-no-files-found: error
-          retention-days: 1
-
-  merge:
-    name: Create Multi-Architecture Manifest
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Download Digests
-        uses: actions/download-artifact@v4
-        with:
-          path: /tmp/digests
-          pattern: digests-media-server-*
-          merge-multiple: true
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Downcase GITHUB_REPOSITORY_OWNER
-        run: |
-          echo "REPOSITORY_OWNER=${GITHUB_REPOSITORY_OWNER@L}" >>${GITHUB_ENV}
-
-      - name: Create Image Manifest
-        run: |
-          docker buildx imagetools create -t ghcr.io/${{ env.REPOSITORY_OWNER }}/cap-media-server:${{ inputs.tag || 'latest' }} \
-            $(find /tmp/digests -type f -not -path "*/\.*" -exec basename {} \; | xargs -I {} echo "ghcr.io/${{ env.REPOSITORY_OWNER }}/cap-media-server@sha256:{}")
+          retention-days: 90

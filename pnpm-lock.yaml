@@ -1370,6 +1370,9 @@ importers:
 
   packages/ui:
     dependencies:
+      '@cap/env':
+        specifier: workspace:*
+        version: link:../env
       '@cap/utils':
         specifier: workspace:*
         version: link:../utils

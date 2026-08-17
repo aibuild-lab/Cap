@@ -7,6 +7,7 @@ import { Video } from "@cap/web-domain";
 import { eq } from "drizzle-orm";
 import { Effect } from "effect";
 import { runPromise } from "@/lib/server";
+import { countVideoPageViews, tinybirdConfigured } from "@/lib/video-views";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 const MIN_RANGE_DAYS = 1;
@@ -46,6 +47,13 @@ export async function getVideoAnalytics(
 		.from(videos)
 		.where(eq(videos.id, Video.VideoId.make(videoId)))
 		.limit(1);
+
+	if (!tinybirdConfigured()) {
+		const rangeDays = normalizeRangeDays(options?.rangeDays);
+		const from = new Date(Date.now() - rangeDays * DAY_IN_MS);
+		const count = await countVideoPageViews(Video.VideoId.make(videoId), from);
+		return { count };
+	}
 
 	return runPromise(
 		Effect.gen(function* () {

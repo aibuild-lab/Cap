@@ -84,6 +84,26 @@ describe("share video metadata", () => {
 		expect(metadata.icons).toBeUndefined();
 	});
 
+	it("uses a configured self-host brand without changing playback URLs", () => {
+		const metadata = buildShareVideoMetadata({
+			videoId: "video123",
+			name: "Private demo",
+			sourceType: "webMP4",
+			webUrl: "https://vids.aibuildlab.com",
+			brandName: "AI Build Lab",
+		});
+
+		expect(metadata.title).toBe("Private demo | AI Build Lab Recording");
+		expect(metadata.openGraph).toMatchObject({
+			siteName: "AI Build Lab",
+			videos: [
+				{
+					url: "https://vids.aibuildlab.com/api/playlist?videoId=video123&videoType=mp4",
+				},
+			],
+		});
+	});
+
 	it.each([
 		["MediaConvert", "master"],
 		["local", "master"],

@@ -269,7 +269,7 @@ export const ShareHeader = ({
 
 	const isOwner = user && user.id === data.owner.id;
 
-	const { webUrl } = usePublicEnv();
+	const { sourceUrl, webUrl } = usePublicEnv();
 	const { download, isDownloading } = useVideoDownload(data.id);
 
 	const resolvedTitle = videoStatus?.name ?? data.name;
@@ -709,14 +709,26 @@ export const ShareHeader = ({
 						/>
 					</div>
 				) : (
-					<a
-						target="_blank"
-						rel="noreferrer"
-						href={`/?ref=video_${data.id}`}
-						className="inline-flex h-11 items-center"
-					>
-						<Logo className="h-7 w-auto" />
-					</a>
+					<div className="flex items-center gap-2">
+						<a
+							target="_blank"
+							rel="noreferrer"
+							href={`/?ref=video_${data.id}`}
+							className="inline-flex h-11 items-center"
+						>
+							<Logo className="h-7 w-auto" />
+						</a>
+						{sourceUrl ? (
+							<a
+								href={sourceUrl}
+								target="_blank"
+								rel="noreferrer"
+								className="text-xs text-gray-10 underline-offset-2 hover:underline"
+							>
+								Source
+							</a>
+						) : null}
+					</div>
 				)}
 			</div>
 		);

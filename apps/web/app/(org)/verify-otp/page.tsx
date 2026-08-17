@@ -5,9 +5,11 @@ import { Suspense } from "react";
 import { getSafeNextPath } from "../safe-next";
 import { VerifyOTPForm } from "./form";
 
-export const metadata = {
-	title: "Verify Code | Cap",
-};
+export async function generateMetadata() {
+	return {
+		title: `Verify Code | ${serverEnv().SELF_HOST_BRAND_NAME || "Cap"}`,
+	};
+}
 
 export default async function VerifyOTPPage(props: {
 	searchParams: Promise<{ email?: string; next?: string; lastSent?: string }>;

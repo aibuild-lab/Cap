@@ -51,6 +51,11 @@ html {
 	color: #000000;
 	background-color: #f2f2f2;
 }
+
+body.dark {
+	color: var(--gray-12);
+	background-color: var(--gray-1);
+}
 .dashboard-grid {
 	display: grid;
 	grid-template-columns: auto 1fr 1fr;
@@ -245,8 +250,6 @@ a.bg-primary:hover {
 	0% {
 		stroke-dasharray: 100;
 		stroke-dashoffset: 100;
-	}
-	50% {
 	}
 	100% {
 		stroke-dashoffset: 0;
@@ -902,6 +905,7 @@ footer a {
 }
 
 /* Safari-specific styles using CSS hacks */
+/* biome-ignore lint/correctness/noUnknownMediaFeatureName: required Safari compatibility query */
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
 	_::-webkit-full-page-media,
 	_:future,

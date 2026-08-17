@@ -13,6 +13,7 @@ import {
 	sendFirstViewEmail,
 } from "@/lib/Notification";
 import { runPromise } from "@/lib/server";
+import { insertVideoPageView, tinybirdConfigured } from "@/lib/video-views";
 
 interface TrackPayload {
 	videoId: string;
@@ -150,25 +151,49 @@ export async function POST(request: NextRequest) {
 				body.ownerId ||
 				(hostname ? `domain:${hostname}` : "public");
 
-			const tinybird = yield* Tinybird;
-			yield* tinybird.appendEvents([
-				{
-					timestamp: timestamp.toISOString(),
-					session_id: sessionId ?? "anon",
-					action: "page_hit",
-					version: "1.0",
-					tenant_id: tenantId,
-					video_id: body.videoId,
-					pathname,
-					country,
-					region,
-					city,
-					browser: browserName,
-					device: deviceType,
-					os: osName,
-					user_id: userId,
-				},
-			]);
+			if (tinybirdConfigured()) {
+				const tinybird = yield* Tinybird;
+				yield* tinybird.appendEvents([
+					{
+						timestamp: timestamp.toISOString(),
+						session_id: sessionId ?? "anon",
+						action: "page_hit",
+						version: "1.0",
+						tenant_id: tenantId,
+						video_id: body.videoId,
+						pathname,
+						country,
+						region,
+						city,
+						browser: browserName,
+						device: deviceType,
+						os: osName,
+						user_id: userId,
+					},
+				]);
+			} else {
+				yield* Effect.tryPromise(() =>
+					insertVideoPageView({
+						videoId: Video.VideoId.make(body.videoId),
+						orgId: body.orgId,
+						sessionId: sessionId ?? "anon",
+						userId,
+						pathname,
+						country,
+						region,
+						city,
+						browser: browserName,
+						device: deviceType,
+						os: osName,
+						timestamp,
+					}),
+				).pipe(
+					Effect.catchAll((error) => {
+						console.error("Failed to store video page view:", error);
+						return Effect.void;
+					}),
+				);
+			}
 
 			const isNewVideo =
 				videoRecord && videoRecord.createdAt >= ANON_NOTIF_CUTOFF;

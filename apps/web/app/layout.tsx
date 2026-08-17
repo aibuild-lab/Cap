@@ -1,5 +1,5 @@
 import "@/app/globals.css";
-import { buildEnv } from "@cap/env";
+import { buildEnv, getSelfHostBrandProfile } from "@cap/env";
 import { OpenPanelComponent } from "@openpanel/nextjs";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
@@ -42,32 +42,40 @@ const defaultFont = localFont({
 	preload: false,
 });
 
+const brand = getSelfHostBrandProfile();
+const isAiBuildLab = brand.id === "ai-build-lab";
+const title = isAiBuildLab
+	? "AI Build Lab Video — Private screen recordings"
+	: "Cap — Beautiful screen recordings, owned by you.";
+const description = isAiBuildLab
+	? "Private-by-default screen recording and sharing for the AI Build Lab team."
+	: "Cap is the open source alternative to Loom. Lightweight, powerful, and cross-platform. Record and share in seconds.";
+
 export const metadata: Metadata = {
-	metadataBase: new URL("https://cap.so"),
-	title: "Cap — Beautiful screen recordings, owned by you.",
-	description:
-		"Cap is the open source alternative to Loom. Lightweight, powerful, and cross-platform. Record and share in seconds.",
+	metadataBase: new URL(
+		isAiBuildLab ? buildEnv.NEXT_PUBLIC_WEB_URL : "https://cap.so",
+	),
+	title,
+	description,
 	openGraph: {
-		title: "Cap — Beautiful screen recordings, owned by you.",
-		description:
-			"Cap is the open source alternative to Loom. Lightweight, powerful, and cross-platform. Record and share in seconds.",
+		title,
+		description,
 		type: "website",
-		url: "https://cap.so",
-		siteName: "Cap",
+		url: isAiBuildLab ? buildEnv.NEXT_PUBLIC_WEB_URL : "https://cap.so",
+		siteName: brand.name,
 		images: [
 			{
 				url: "/api/og",
 				width: 1200,
 				height: 630,
-				alt: "Cap — Beautiful screen recordings, owned by you.",
+				alt: title,
 			},
 		],
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "Cap — Beautiful screen recordings, owned by you.",
-		description:
-			"Cap is the open source alternative to Loom. Lightweight, powerful, and cross-platform. Record and share in seconds.",
+		title,
+		description,
 		images: ["/api/og"],
 	},
 };
@@ -82,25 +90,28 @@ export default function RootLayout({ children }: PropsWithChildren) {
 				<link
 					rel="apple-touch-icon"
 					sizes="180x180"
-					href="/apple-touch-icon.png"
+					href={isAiBuildLab ? brand.logoPath : "/apple-touch-icon.png"}
 				/>
 				<link
 					rel="icon"
 					type="image/png"
 					sizes="32x32"
-					href="/favicon-32x32.png"
+					href={isAiBuildLab ? brand.logoPath : "/favicon-32x32.png"}
 				/>
 				<link
 					rel="icon"
 					type="image/png"
 					sizes="16x16"
-					href="/favicon-16x16.png"
+					href={isAiBuildLab ? brand.logoPath : "/favicon-16x16.png"}
 				/>
-				<link rel="manifest" href="/site.webmanifest" />
+				<link rel="manifest" href={brand.manifestPath} />
 				<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
-				<link rel="shortcut icon" href="/favicon.ico" />
+				<link
+					rel="shortcut icon"
+					href={isAiBuildLab ? brand.logoPath : "/favicon.ico"}
+				/>
 				<meta name="msapplication-TileColor" content="#da532c" />
-				<meta name="theme-color" content="#ffffff" />
+				<meta name="theme-color" content={brand.themeColor} />
 			</head>
 			<body suppressHydrationWarning>
 				<Script src="/theme-script.js" strategy="beforeInteractive" />
