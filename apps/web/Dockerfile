@@ -36,7 +36,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 COPY --from=builder --chown=nextjs:nodejs /app/packages/database/migrations ./apps/web/migrations
 
 
-USER nextjs
+USER 1001:1001
 
 EXPOSE 3000
 

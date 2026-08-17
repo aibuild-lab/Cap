@@ -11,9 +11,20 @@ jobs:
       packages: write
       id-token: write
       attestations: write
+      artifact-metadata: write
     steps:
       - name: Check out exact revision
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+      - name: Audit locked production dependencies
+        run: |
+          corepack enable
+          corepack install --global pnpm@10.5.2
+          pnpm install --frozen-lockfile
+          pnpm audit --prod --audit-level=critical
       - name: Set up Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - name: Log in to GHCR
@@ -40,14 +51,57 @@ jobs:
           sbom: true
           cache-from: type=gha,scope=aibl-cap-web-amd64
           cache-to: type=gha,mode=max,scope=aibl-cap-web-amd64
-      - name: Record immutable digest
+      - name: Prepare release evidence
         run: |
           mkdir -p image-receipt
           printf '%s\n' 'ghcr.io/${{ env.IMAGE_OWNER }}/cap-web@${{ steps.image.outputs.digest }}' > image-receipt/cap-web.txt
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
+        with:
+          image: ghcr.io/${{ env.IMAGE_OWNER }}/cap-web@${{ steps.image.outputs.digest }}
+          format: spdx-json
+          output-file: image-receipt/cap-web.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+      - name: Attest build provenance
+        id: provenance
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3
+        with:
+          subject-name: ghcr.io/${{ env.IMAGE_OWNER }}/cap-web
+          subject-digest: ${{ steps.image.outputs.digest }}
+          push-to-registry: true
+      - name: Attest SBOM
+        id: sbom
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4
+        with:
+          subject-name: ghcr.io/${{ env.IMAGE_OWNER }}/cap-web
+          subject-digest: ${{ steps.image.outputs.digest }}
+          sbom-path: image-receipt/cap-web.spdx.json
+          push-to-registry: true
+      - name: Record release evidence
+        env:
+          IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
+          PROVENANCE_ATTESTATION_ID: ${{ steps.provenance.outputs.attestation-id }}
+          PROVENANCE_ATTESTATION_URL: ${{ steps.provenance.outputs.attestation-url }}
+          SBOM_ATTESTATION_ID: ${{ steps.sbom.outputs.attestation-id }}
+          SBOM_ATTESTATION_URL: ${{ steps.sbom.outputs.attestation-url }}
+        run: |
+          jq -n \
+            --arg image "ghcr.io/${IMAGE_OWNER}/cap-web@${IMAGE_DIGEST}" \
+            --arg source_repository "${GITHUB_REPOSITORY}" \
+            --arg source_revision "${GITHUB_SHA}" \
+            --arg workflow_run "github:${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/attempts/${GITHUB_RUN_ATTEMPT}" \
+            --arg provenance_attestation_id "${PROVENANCE_ATTESTATION_ID}" \
+            --arg provenance_attestation_url "${PROVENANCE_ATTESTATION_URL}" \
+            --arg sbom_attestation_id "${SBOM_ATTESTATION_ID}" \
+            --arg sbom_attestation_url "${SBOM_ATTESTATION_URL}" \
+            '{schema: 1, image: $image, platform: "linux/amd64", source_repository: $source_repository, source_revision: $source_revision, workflow_run: $workflow_run, provenance: {attestation_id: $provenance_attestation_id, attestation_url: $provenance_attestation_url}, sbom: {path: "cap-web.spdx.json", attestation_id: $sbom_attestation_id, attestation_url: $sbom_attestation_url}}' \
+            > image-receipt/cap-web.json
+          sha256sum image-receipt/cap-web.json image-receipt/cap-web.spdx.json > image-receipt/checksums.sha256
       - name: Upload digest receipt
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: cap-web-${{ github.sha }}
-          path: image-receipt/cap-web.txt
+          path: image-receipt/
           if-no-files-found: error
           retention-days: 90

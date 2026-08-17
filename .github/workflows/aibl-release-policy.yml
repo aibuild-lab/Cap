@@ -1,0 +1,69 @@
+name: AIBL release policy
+
+on:
+  pull_request:
+    branches:
+      - aibl-stable
+  push:
+    branches:
+      - aibl-stable
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-policy:
+    name: Release policy
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out exact revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - name: Install pinned pnpm
+        run: |
+          corepack enable
+          corepack install --global pnpm@10.5.2
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Verify release policy
+        run: |
+          python3 scripts/verify-aibl-release-policy.py
+          python3 scripts/test-verify-aibl-release-policy.py
+      - name: Run AIBL self-host tests
+        run: >-
+          pnpm --filter=@cap/web exec vitest run
+          __tests__/unit/self-host-brand.test.ts
+          __tests__/unit/self-host-analytics.test.ts
+          __tests__/unit/queue-video-transcription.test.ts
+          __tests__/unit/share-theme-script.test.ts
+          __tests__/unit/share-video-metadata.test.ts
+      - name: Run media-server tests
+        working-directory: apps/media-server
+        run: bun test
+      - name: Build production web application
+        env:
+          NODE_ENV: production
+          WEB_URL: https://vids.aibuildlab.com
+          NEXT_PUBLIC_WEB_URL: https://vids.aibuildlab.com
+          NEXT_PUBLIC_SELF_HOST_BRAND: ai-build-lab
+          DATABASE_URL: mysql://cap:synthetic@127.0.0.1:3306/cap
+          NEXTAUTH_URL: https://vids.aibuildlab.com
+          NEXTAUTH_SECRET: synthetic-build-value-not-for-runtime
+          CAP_AWS_BUCKET: synthetic-build-bucket
+          CAP_AWS_REGION: auto
+          CAP_AWS_ACCESS_KEY: synthetic
+          CAP_AWS_SECRET_KEY: synthetic
+          S3_PUBLIC_ENDPOINT: https://storage.invalid
+          S3_INTERNAL_ENDPOINT: https://storage.invalid
+          S3_PATH_STYLE: "true"
+          CAP_VIDEOS_DEFAULT_PUBLIC: "false"
+          CAP_ALLOWED_SIGNUP_DOMAINS: aibuildlab.com
+          SELF_HOST_BRAND_NAME: AI Build Lab
+          SELF_HOST_SOURCE_URL: https://github.com/aibuild-lab/Cap
+        run: pnpm --filter=@cap/web build
