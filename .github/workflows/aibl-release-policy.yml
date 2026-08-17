@@ -32,12 +32,6 @@ jobs:
           corepack install --global pnpm@10.5.2
       - name: Install locked dependencies
         run: pnpm install --frozen-lockfile
-      - name: Install and verify media tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends ffmpeg
-          ffmpeg -version
-          ffprobe -version
       - name: Verify release policy
         run: |
           python3 scripts/verify-aibl-release-policy.py
@@ -50,9 +44,22 @@ jobs:
           __tests__/unit/queue-video-transcription.test.ts
           __tests__/unit/share-theme-script.test.ts
           __tests__/unit/share-video-metadata.test.ts
-      - name: Run media-server tests
-        working-directory: apps/media-server
-        run: bun test
+      - name: Test the production media image
+        run: |
+          image_tag="aibl-cap-media-test:${GITHUB_SHA}"
+          docker build \
+            --file apps/media-server/Dockerfile.standalone \
+            --tag "${image_tag}" \
+            apps/media-server
+          docker run --rm \
+            --read-only \
+            --tmpfs /tmp:rw,nosuid,nodev,size=1g \
+            --cap-drop ALL \
+            --security-opt no-new-privileges:true \
+            --cpus 2 \
+            --memory 4g \
+            "${image_tag}" \
+            bun test --max-concurrency 1
       - name: Build production web application
         env:
           NODE_ENV: production
