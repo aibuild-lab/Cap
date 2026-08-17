@@ -47,19 +47,32 @@ jobs:
       - name: Test the production media image
         run: |
           image_tag="aibl-cap-media-test:${GITHUB_SHA}"
-          docker build \
-            --file apps/media-server/Dockerfile.standalone \
-            --tag "${image_tag}" \
-            apps/media-server
-          docker run --rm \
-            --read-only \
-            --tmpfs /tmp:rw,nosuid,nodev,size=1g \
-            --cap-drop ALL \
-            --security-opt no-new-privileges:true \
-            --cpus 2 \
-            --memory 4g \
-            "${image_tag}" \
-            bun test --timeout 30000 --max-concurrency 1
+          set +e
+          {
+            docker build \
+              --file apps/media-server/Dockerfile.standalone \
+              --tag "${image_tag}" \
+              apps/media-server &&
+            docker run --rm \
+              --read-only \
+              --tmpfs /tmp:rw,nosuid,nodev,size=1g \
+              --cap-drop ALL \
+              --security-opt no-new-privileges:true \
+              --cpus 2 \
+              --memory 4g \
+              "${image_tag}" \
+              bun test --timeout 30000 --max-concurrency 1
+          } 2>&1 | tee /tmp/aibl-media-gate.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if (( status != 0 )); then
+            summary="$(tail -n 80 /tmp/aibl-media-gate.log | tr '\n' ' ' | cut -c1-3500)"
+            summary="${summary//'%'/'%25'}"
+            summary="${summary//$'\r'/'%0D'}"
+            summary="${summary//$'\n'/'%0A'}"
+            echo "::error title=Production media image gate failed::${summary}"
+            exit "${status}"
+          fi
       - name: Build production web application
         env:
           NODE_ENV: production
