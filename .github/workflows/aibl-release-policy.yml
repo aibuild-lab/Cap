@@ -36,6 +36,9 @@ jobs:
         run: |
           python3 scripts/verify-aibl-release-policy.py
           python3 scripts/test-verify-aibl-release-policy.py
+          python3 scripts/test-verify-aibl-production-audit.py
+      - name: Audit deployed production dependencies
+        run: python3 scripts/verify-aibl-production-audit.py
       - name: Run AIBL self-host tests
         run: >-
           pnpm --filter=@cap/web exec vitest run

@@ -39,7 +39,10 @@ def validate(root: Path) -> list[str]:
 			"actions/attest@",
 			"push-to-registry: true",
 			"platforms: linux/amd64",
-			"pnpm audit --prod --audit-level=critical",
+			"python3 scripts/verify-aibl-production-audit.py",
+			"aquasecurity/trivy-action@",
+			"severity: CRITICAL",
+			"severity: HIGH",
 		):
 			if required not in text:
 				errors.append(f"{relative}: missing {required}")
@@ -50,12 +53,25 @@ def validate(root: Path) -> list[str]:
 		"pnpm --filter=@cap/web build",
 		"NODE_ENV: production",
 		"pnpm --filter=@cap/web exec vitest run",
+		"python3 scripts/verify-aibl-production-audit.py",
+		"python3 scripts/test-verify-aibl-production-audit.py",
 	):
 		if required not in release_policy:
 			errors.append(f".github/workflows/aibl-release-policy.yml: missing {required}")
 
 	for relative in ("apps/web/Dockerfile", "apps/media-server/Dockerfile.standalone"):
 		text = (root / relative).read_text(encoding="utf-8")
+		from_lines = [line for line in text.splitlines() if line.startswith("FROM ")]
+		stage_aliases: set[str] = set()
+		for from_line in from_lines:
+			parts = from_line.split()
+			image = parts[1]
+			if image not in stage_aliases and not re.search(r"@sha256:[0-9a-f]{64}$", image):
+				errors.append(
+					f"{relative}: every external base image must be pinned to a sha256 digest"
+				)
+			if len(parts) >= 4 and parts[-2].lower() == "as":
+				stage_aliases.add(parts[-1])
 		if not re.search(r"(?m)^USER\s+[1-9][0-9]*(?::[1-9][0-9]*)?\s*$", text):
 			errors.append(f"{relative}: final image must declare a numeric non-root USER")
 
