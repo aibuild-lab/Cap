@@ -13,6 +13,8 @@ function createServerEnv() {
 	return createEnv({
 		server: {
 			/// General configuration
+			SELF_HOST_BRAND_NAME: z.string().optional(),
+			SELF_HOST_SOURCE_URL: z.string().url().optional(),
 			DATABASE_URL: z.string().describe("MySQL database URL"),
 			WEB_URL: z
 				.string()
@@ -29,6 +31,7 @@ function createServerEnv() {
 			// Cap uses Resend for email sending, including sending login code emails
 			RESEND_API_KEY: z.string().optional(),
 			RESEND_FROM_DOMAIN: z.string().optional(),
+			RESEND_FROM_EMAIL: z.string().email().optional(),
 
 			/// S3 configuration
 			// Though they are prefixed with `CAP_AWS`, these don't have to be

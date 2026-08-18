@@ -9,6 +9,7 @@ const create = () =>
 	createEnv({
 		client: {
 			NEXT_PUBLIC_IS_CAP: z.string().optional(),
+			NEXT_PUBLIC_SELF_HOST_BRAND: z.enum(["ai-build-lab"]).optional(),
 			NEXT_PUBLIC_OPENPANEL_CLIENT_ID: z.string().optional(),
 			NEXT_PUBLIC_OPENPANEL_API_URL: z.string().optional(),
 			NEXT_PUBLIC_WEB_URL: z.string(),
@@ -16,6 +17,7 @@ const create = () =>
 		},
 		runtimeEnv: {
 			NEXT_PUBLIC_IS_CAP: process.env.NEXT_PUBLIC_IS_CAP,
+			NEXT_PUBLIC_SELF_HOST_BRAND: process.env.NEXT_PUBLIC_SELF_HOST_BRAND,
 			NEXT_PUBLIC_OPENPANEL_CLIENT_ID:
 				process.env.NEXT_PUBLIC_OPENPANEL_CLIENT_ID,
 			NEXT_PUBLIC_OPENPANEL_API_URL: process.env.NEXT_PUBLIC_OPENPANEL_API_URL,

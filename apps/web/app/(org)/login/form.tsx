@@ -36,6 +36,7 @@ const MotionLink = motion(Link);
 const MotionButton = motion(Button);
 
 export function LoginForm() {
+	const { brandName } = usePublicEnv();
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const next = searchParams?.get("next");
@@ -250,14 +251,16 @@ export function LoginForm() {
 					layout="position"
 					className="text-2xl font-semibold text-gray-12"
 				>
-					Sign in to Cap
+					Sign in to {brandName}
 				</motion.h1>
 				<motion.p
 					key="subtitle"
 					layout="position"
 					className="text-[16px] text-gray-10"
 				>
-					Beautiful screen recordings, owned by you.
+					{brandName === "Cap"
+						? "Beautiful screen recordings, owned by you."
+						: "Private screen recordings, owned by your team."}
 				</motion.p>
 			</motion.div>
 			<motion.div layout="position" className="flex flex-col space-y-3">

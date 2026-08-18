@@ -1,4 +1,22 @@
+import { getSelfHostBrandProfile } from "@cap/env";
+
 export const LogoBadge = ({ className }: { className: string }) => {
+	const brand = getSelfHostBrandProfile();
+	if (brand.id === "ai-build-lab") {
+		return (
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				className={className}
+				viewBox="0 0 500 500"
+				role="img"
+				aria-label={`${brand.name} logo`}
+			>
+				<title>{brand.name} logo</title>
+				<image href={brand.logoPath} width="500" height="500" />
+			</svg>
+		);
+	}
+
 	return (
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
@@ -10,6 +28,7 @@ export const LogoBadge = ({ className }: { className: string }) => {
 				aspectRatio: "1 / 1",
 			}}
 		>
+			<title>Cap logo</title>
 			<rect width="40" height="40" fill="#fff" rx="8"></rect>
 			<path
 				fill="#4785FF"

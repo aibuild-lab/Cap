@@ -435,6 +435,35 @@ export const videos = mysqlTable(
 	],
 );
 
+export const videoPageViews = mysqlTable(
+	"video_page_views",
+	{
+		id: bigint("id", { mode: "number" }).autoincrement().primaryKey(),
+		videoId: nanoId("videoId").notNull().$type<Video.VideoId>(),
+		orgId: nanoIdNullable("orgId").$type<Organisation.OrganisationId>(),
+		sessionId: varchar("sessionId", { length: 128 }).notNull(),
+		userId: nanoIdNullable("userId").$type<User.UserId>(),
+		pathname: varchar("pathname", { length: 255 }),
+		country: varchar("country", { length: 64 }),
+		region: varchar("region", { length: 64 }),
+		city: varchar("city", { length: 128 }),
+		browser: varchar("browser", { length: 64 }),
+		device: varchar("device", { length: 64 }),
+		os: varchar("os", { length: 64 }),
+		timestamp: timestamp("timestamp").notNull().defaultNow(),
+	},
+	(table) => [
+		index("video_page_views_video_timestamp_idx").on(
+			table.videoId,
+			table.timestamp,
+		),
+		index("video_page_views_video_session_idx").on(
+			table.videoId,
+			table.sessionId,
+		),
+	],
+);
+
 export const videoEdits = mysqlTable("video_edits", {
 	videoId: nanoId("videoId")
 		.notNull()

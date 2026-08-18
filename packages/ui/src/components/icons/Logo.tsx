@@ -1,3 +1,5 @@
+import { getSelfHostBrandProfile } from "@cap/env";
+
 export const Logo = ({
 	className,
 	showVersion,
@@ -15,6 +17,25 @@ export const Logo = ({
 	style?: React.CSSProperties;
 	viewBoxDimensions?: `${string} ${string} ${string} ${string}`;
 }) => {
+	const brand = getSelfHostBrandProfile();
+	if (brand.id === "ai-build-lab") {
+		return (
+			<div className="flex items-center">
+				<svg
+					viewBox="0 0 500 500"
+					xmlns="http://www.w3.org/2000/svg"
+					preserveAspectRatio="xMidYMid meet"
+					style={style}
+					aria-label={`${brand.name} logo`}
+					className={className}
+				>
+					<title>{brand.name} logo</title>
+					<image href={brand.logoPath} width="500" height="500" />
+				</svg>
+			</div>
+		);
+	}
+
 	return (
 		<div className="flex items-center">
 			<svg
@@ -26,6 +47,7 @@ export const Logo = ({
 				aria-label="Cap Logo"
 				className={className}
 			>
+				<title>Cap logo</title>
 				{/* <rect
           width="39.5"
           height="39.5"

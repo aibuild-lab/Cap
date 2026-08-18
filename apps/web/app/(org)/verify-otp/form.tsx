@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { usePublicEnv } from "@/utils/public-env";
 import { getSafeNextPath } from "../safe-next";
 
 export function VerifyOTPForm({
@@ -21,6 +22,7 @@ export function VerifyOTPForm({
 	next?: string;
 	lastSent?: string;
 }) {
+	const { brandName } = usePublicEnv();
 	const [code, setCode] = useState(["", "", "", "", "", ""]);
 	const [lastResendTime, setLastResendTime] = useState<number | null>(
 		lastSent ? parseInt(lastSent, 10) : null,
@@ -230,7 +232,7 @@ export function VerifyOTPForm({
 
 			<p className="mt-6 text-xs text-center text-gray-9">
 				By entering your email, you acknowledge that you have both read and
-				agree to Cap's{" "}
+				agree to {brandName}'s{" "}
 				<Link
 					href="/terms"
 					target="_blank"

@@ -15,6 +15,7 @@ export type ShareVideoMetadataInput = {
 	name: string;
 	sourceType: ShareVideoSourceType;
 	webUrl: string;
+	brandName?: string;
 	advertiseIframelyPlayer?: boolean;
 };
 
@@ -62,11 +63,12 @@ export const buildShareVideoMetadata = ({
 	name,
 	sourceType,
 	webUrl,
+	brandName = "Cap",
 	advertiseIframelyPlayer = false,
 }: ShareVideoMetadataInput): Metadata => {
 	const urls = getShareVideoUrls({ videoId, sourceType, webUrl });
-	const title = `${name} | Cap Recording`;
-	const description = "Watch this video on Cap";
+	const title = `${name} | ${brandName} Recording`;
+	const description = `Watch this video on ${brandName}`;
 
 	return {
 		title,
@@ -99,7 +101,7 @@ export const buildShareVideoMetadata = ({
 		openGraph: {
 			type: "video.other",
 			url: urls.shareUrl,
-			siteName: "Cap",
+			siteName: brandName,
 			title,
 			description,
 			ttl: 300,

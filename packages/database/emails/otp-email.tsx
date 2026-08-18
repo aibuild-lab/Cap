@@ -1,4 +1,4 @@
-import { CAP_LOGO_URL } from "@cap/utils";
+import { getSelfHostBrandName, getSelfHostEmailLogoUrl } from "@cap/env";
 import {
 	Body,
 	Container,
@@ -20,19 +20,24 @@ export function OTPEmail({
 	email: string;
 	code: string;
 }) {
+	const brandName = getSelfHostBrandName();
+	const logoUrl = getSelfHostEmailLogoUrl();
+
 	return (
 		<Html>
 			<Head />
-			<Preview>Your Cap Verification Code: {code}</Preview>
+			<Preview>
+				Your {brandName} Verification Code: {code}
+			</Preview>
 			<Tailwind>
 				<Body className="mx-auto my-auto bg-gray-1 font-sans">
 					<Container className="mx-auto my-10 max-w-[500px] rounded border border-solid border-gray-200 px-10 py-5">
 						<Section className="mt-8">
 							<Img
-								src={CAP_LOGO_URL}
+								src={logoUrl}
 								width="40"
 								height="40"
-								alt="Cap"
+								alt={brandName}
 								className="mx-auto my-0"
 							/>
 						</Section>
@@ -40,7 +45,7 @@ export function OTPEmail({
 							Your Verification Code
 						</Heading>
 						<Text className="text-sm leading-6 text-black">
-							Welcome to Cap!
+							Welcome to {brandName}!
 						</Text>
 						<Text className="text-sm leading-6 text-black">
 							Please use the following verification code to sign in to your
