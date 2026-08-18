@@ -45,6 +45,29 @@ class ReleasePolicyTests(unittest.TestCase):
 			errors = POLICY.validate(root)
 			self.assertTrue(any("40-character commit" in error for error in errors))
 
+	def test_mutable_base_image_reference_is_rejected(self) -> None:
+		with tempfile.TemporaryDirectory() as temporary:
+			root = Path(temporary)
+			for relative in POLICY.WORKFLOWS:
+				destination = root / relative
+				destination.parent.mkdir(parents=True, exist_ok=True)
+				shutil.copy2(POLICY.ROOT / relative, destination)
+			for relative in (
+				"apps/web/Dockerfile",
+				"apps/media-server/Dockerfile.standalone",
+				"AIBL-SELF-HOST.md",
+			):
+				destination = root / relative
+				destination.parent.mkdir(parents=True, exist_ok=True)
+				shutil.copy2(POLICY.ROOT / relative, destination)
+			web_dockerfile = root / "apps/web/Dockerfile"
+			lines = web_dockerfile.read_text(encoding="utf-8").splitlines()
+			from_index = next(index for index, line in enumerate(lines) if line.startswith("FROM "))
+			lines[from_index] = "FROM node:24-alpine AS base"
+			web_dockerfile.write_text("\n".join(lines) + "\n", encoding="utf-8")
+			errors = POLICY.validate(root)
+			self.assertTrue(any("base image must be pinned" in error for error in errors))
+
 
 if __name__ == "__main__":
 	unittest.main()
