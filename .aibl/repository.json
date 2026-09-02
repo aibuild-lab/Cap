@@ -1,54 +1,54 @@
 {
-  "schema_version": "aibl.repository-descriptor/v1",
-  "id": "repo.cap",
-  "display_name": "Cap",
-  "repository": "aibuild-lab/Cap",
-  "authority_scope": "Owns the AIBL Cap fork product source for the open source screen recording platform, including desktop, web, CLI, browser extension, self-hosting, and shared media/application code. It does not own Company Hub catalog routing, Team HQ intake, private recordings or credentials, or the unresolved upstream/fork policy.",
-  "lifecycle": "current",
-  "audience": "public",
-  "privacy_class": "public",
-  "owner": "AIBL Engineering",
-  "human_entry_points": [
-    {
-      "label": "Repository guide",
-      "path": "README.md"
-    },
-    {
-      "label": "AIBL self-hosting guide",
-      "path": "AIBL-SELF-HOST.md"
-    },
-    {
-      "label": "Contribution guide",
-      "path": "CONTRIBUTING.md"
-    }
-  ],
-  "agent_entry_points": [
-    {
-      "label": "Agent contract",
-      "path": "AGENTS.md"
-    },
-    {
-      "label": "Claude entrypoint",
-      "path": "CLAUDE.md"
-    },
-    {
-      "label": "AIBL release policy",
-      "path": ".github/workflows/aibl-release-policy.yml"
-    }
-  ],
-  "review": {
-    "reviewed_at": "2026-09-02",
-    "cadence_days": 90
-  },
-  "roadmap_refs": [],
-  "replacement_ref": null,
-  "notes": "Company Hub is the catalog and routing projection for this repository, while Team HQ remains readable and accepts existing work. The repository is a public AIBL Cap fork and product source for open source screen recording, sharing, desktop, web, CLI, browser extension, and self-hosting work. Cap supports owning storage, self-hosting, local recordings, public or private sharing, passwords, custom domains, and keeping sensitive recordings off hosted infrastructure. The upstream/fork policy and why the stable branch is the provider default remain unresolved authority items.",
-  "extensions": {
-    "aibl.cap": {
-      "authority_role": "product-source",
-      "inventory_status": "keep-separate",
-      "provider_branch": "aibl-stable",
-      "qualification_hold": "confirm-upstream-fork-policy"
-    }
-  }
+	"schema_version": "aibl.repository-descriptor/v1",
+	"id": "repo.cap",
+	"display_name": "Cap",
+	"repository": "aibuild-lab/Cap",
+	"authority_scope": "Owns the AIBL Cap fork product source for the open source screen recording platform, including desktop, web, CLI, browser extension, self-hosting, and shared media/application code. It does not own Company Hub catalog routing, Team HQ intake, private recordings or credentials, or the unresolved upstream/fork policy.",
+	"lifecycle": "current",
+	"audience": "public",
+	"privacy_class": "public",
+	"owner": "AIBL Engineering",
+	"human_entry_points": [
+		{
+			"label": "Repository guide",
+			"path": "README.md"
+		},
+		{
+			"label": "AIBL self-hosting guide",
+			"path": "AIBL-SELF-HOST.md"
+		},
+		{
+			"label": "Contribution guide",
+			"path": "CONTRIBUTING.md"
+		}
+	],
+	"agent_entry_points": [
+		{
+			"label": "Agent contract",
+			"path": "AGENTS.md"
+		},
+		{
+			"label": "Claude entrypoint",
+			"path": "CLAUDE.md"
+		},
+		{
+			"label": "AIBL release policy",
+			"path": ".github/workflows/aibl-release-policy.yml"
+		}
+	],
+	"review": {
+		"reviewed_at": "2026-09-02",
+		"cadence_days": 90
+	},
+	"roadmap_refs": [],
+	"replacement_ref": null,
+	"notes": "Company Hub is the catalog and routing projection for this repository, while Team HQ remains readable and accepts existing work. The repository is a public AIBL Cap fork and product source for open source screen recording, sharing, desktop, web, CLI, browser extension, and self-hosting work. Cap supports owning storage, self-hosting, local recordings, public or private sharing, passwords, custom domains, and keeping sensitive recordings off hosted infrastructure. The upstream/fork policy and why the stable branch is the provider default remain unresolved authority items.",
+	"extensions": {
+		"aibl.cap": {
+			"authority_role": "product-source",
+			"inventory_status": "keep-separate",
+			"provider_branch": "aibl-stable",
+			"qualification_hold": "confirm-upstream-fork-policy"
+		}
+	}
 }
